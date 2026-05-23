@@ -96,10 +96,11 @@ align-items:center;
 
 .team{ text-align:center; width:40%;}
 .teamName{ font-size:60px; margin-bottom:20px; word-break: break-all;}
-.points{ font-size:180px; font-weight:bold; line-height: 1; color: yellow;}
-.sets{ font-size:50px; color:#ff0000; margin-bottom: 10px;}
+.pointsContainer { display: flex; align-items: center; justify-content: center; gap: 15px; }
+.points{ font-size:180px; font-weight:bold; line-height: 1;}
+.sets{ font-size:35px; color:#aaa; margin-bottom: 10px;}
 .arrow{ font-size:50px; color:yellow; opacity:0; transition: 0.2s;}
-.center{ font-size:80px; color:#ffffff;}
+.center{ font-size:80px; color:#444;}
 
 .overlay{
 position:absolute;
@@ -169,8 +170,10 @@ z-index:99;
             <div class="team">
                 <div class="teamName" id="tvName1">TIME A</div>
                 <div class="sets">SETS: <span id="set1">0</span></div>
-                <div class="points" id="point1">0</div>
-                <div class="arrow" id="arrow1">⏱</div>
+                <div class="pointsContainer">
+                    <div class="points" id="point1">0</div>
+                    <div class="arrow" id="arrow1">⏱</div>
+                </div>
             </div>
 
             <div class="center">VS</div>
@@ -178,8 +181,10 @@ z-index:99;
             <div class="team">
                 <div class="teamName" id="tvName2">TIME B</div>
                 <div class="sets">SETS: <span id="set2">0</span></div>
-                <div class="points" id="point2">0</div>
-                <div class="arrow" id="arrow2">⏱</div>
+                <div class="pointsContainer">
+                    <div class="arrow" id="arrow2">⏱</div>
+                    <div class="points" id="point2">0</div>
+                </div>
             </div>
         </div>
     </div>
@@ -190,7 +195,6 @@ z-index:99;
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, set, onValue, update as dbUpdate } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  // Suas credenciais oficiais do Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyBqJhhs4dNL99qPfo84pvtTFOhpcVVRDjs",
     authDomain: "placar-de-volei-d501e.firebaseapp.com",
@@ -202,12 +206,10 @@ z-index:99;
     measurementId: "G-WTPM3WF8E6"
   };
 
-  // Inicializa o Firebase
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const placarRef = ref(db, 'partida/');
 
-  // Estado local padrão
   let state = {
     name1: "TIME A", name2: "TIME B",
     point1: 0, point2: 0,
@@ -215,7 +217,6 @@ z-index:99;
     timeout: 0, black: false
   };
 
-  // Escuta as atualizações em tempo real do banco de dados
   onValue(placarRef, (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -226,7 +227,6 @@ z-index:99;
     }
   });
 
-  // Renderiza as mudanças na tela principal do PC
   function render() {
     if(document.activeElement !== document.getElementById('name1')) name1.value = state.name1;
     if(document.activeElement !== document.getElementById('name2')) name2.value = state.name2;
@@ -244,7 +244,7 @@ z-index:99;
     overlay.classList.toggle("hidden", state.black);
   }
 
-  // Abre a janela limpa de transmissão conectada ao Firebase
+  // Abre a janela limpa de transmissão com o ícone estático (sem piscar)
   window.openScreen = function() {
     const secondWindow = window.open("", "_blank");
     
@@ -262,28 +262,55 @@ z-index:99;
           .overlay { position:fixed; inset:0; background:black; display:none; z-index:99; }
           .score { display:flex; width:100%; justify-content:space-around; align-items:center; padding: 40px; }
           .team { text-align:center; width:43%; }
-          .points{ font-size:300px; font-weight:bold; line-height: 1; color: yellow;}
           .name { font-size:75px; word-break: break-all; }
-          .arrow { font-size:100px; opacity:0; color:yellow; transition: 0.2s; }
-          .set { font-size:100px; color:#fff;}
-          .center { font-size:90px; color:#fff; }
+          .set { font-size:45px; color:#aaa; }
+          
+          /* Alinhamento dos pontos + Cronômetro de tempo */
+          .pointsDisplayContainer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 10px;
+          }
+          .points { font-size:240px; font-weight:bold; line-height: 1; }
+          
+          .arrow { 
+            font-size:80px; 
+            color:yellow; 
+            visibility: hidden; /* Oculto por padrão, mas mantendo o espaçamento fixo */
+          }
+          
+          /* Classe que apenas exibe o ícone de forma fixa quando ativo */
+          .activeTimeout {
+            visibility: visible !important;
+          }
+
+          .center { font-size:90px; color:#444; }
         </style>
       </head>
       <body>
         <div id="overlay" class="overlay"></div>
         <div class="score">
+          
           <div class="team">
             <div id="n1" class="name">TIME A</div>
-            <div id="p1" class="points">0</div>
-            <div id="a1" class="arrow">⏱</div>
             <div class="set">SETS: <span id="s1">0</span></div>
+            <div class="pointsDisplayContainer">
+                <div id="p1" class="points">0</div>
+                <div id="a1" class="arrow">⚫</div>
+            </div>
           </div>
+          
           <div class="center">VS</div>
+          
           <div class="team">
             <div id="n2" class="name">TIME B</div>
-            <div id="p2" class="points">0</div>
-            <div id="a2" class="arrow">⏱</div>
             <div class="set">SETS: <span id="s2">0</span></div>
+            <div class="pointsDisplayContainer">
+                <div id="a2" class="arrow">⚫</div>
+                <div id="p2" class="points">0</div>
+            </div>
           </div>
         </div>
 
@@ -305,8 +332,14 @@ z-index:99;
               document.getElementById('p2').innerText = d.point2;
               document.getElementById('s1').innerText = d.set1;
               document.getElementById('s2').innerText = d.set2;
-              document.getElementById('a1').style.opacity = d.timeout === 1 ? 1 : 0;
-              document.getElementById('a2').style.opacity = d.timeout === 2 ? 1 : 0;
+              
+              // Mostra ou oculta o ícone de forma fixa
+              if(d.timeout === 1) document.getElementById('a1').classList.add('activeTimeout');
+              else document.getElementById('a1').classList.remove('activeTimeout');
+              
+              if(d.timeout === 2) document.getElementById('a2').classList.add('activeTimeout');
+              else document.getElementById('a2').classList.remove('activeTimeout');
+              
               document.getElementById('overlay').style.display = d.black ? "block" : "none";
             }
           });
@@ -317,7 +350,6 @@ z-index:99;
     secondWindow.document.close();
   }
 
-  // Funções de controle enviando dados para a nuvem
   window.changePoint = function(team, val) {
     let currentPoints = state["point" + team] + val;
     if (currentPoints < 0) currentPoints = 0;
