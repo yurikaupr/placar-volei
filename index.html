@@ -76,7 +76,7 @@ button:active { transform: scale(0.95); }
 .blackBtn{ background:black; border:1px solid #555;}
 .reset{ background:#b91c1c;}
 
-/* ===== TELA PRINCIPAL ===== */
+/* ===== TELA ===== */
 .display{
 flex:1;
 position:relative;
@@ -96,11 +96,10 @@ align-items:center;
 
 .team{ text-align:center; width:40%;}
 .teamName{ font-size:60px; margin-bottom:20px; word-break: break-all;}
-.pointsContainer { display: flex; align-items: center; justify-content: center; gap: 15px; margin-left: 20px;}
-.points{ font-size:300px; font-weight:bold; line-height: 1; color: yellow;}
-.sets{ font-size:50px; color:#fff; margin-bottom: 10px; font-weight: 700;}
-.arrow{ font-size:50px; color:#ff0000; opacity:0; transition: 0.2s;}
-.center{ font-size:80px; color:#fff;}
+.points{ font-size:180px; font-weight:bold; line-height: 1;}
+.sets{ font-size:35px; color:#aaa; margin-bottom: 10px;}
+.arrow{ font-size:50px; color:yellow; opacity:0; transition: 0.2s;}
+.center{ font-size:80px; color:#444;}
 
 .overlay{
 position:absolute;
@@ -127,7 +126,7 @@ z-index:99;
 
     <div class="control">
         <h2>Controle</h2>
-        <h3>Abra no celular para assistir ou controlar!</h3>
+        <h3>Abra este arquivo no celular para ver ou controlar!</h3>
         
         <div class="teamControl">
             <input id="name1" value="TIME A" onchange="saveName(1, this.value)">
@@ -159,7 +158,6 @@ z-index:99;
             <button class="normal" onclick="timeout(2)">Tempo TIME B</button>
         </div>
 
-        <button class="big" onclick="openScreen()">Abrir transmissão (HDMI)</button>
         <button class="big blackBtn" onclick="toggleBlack()">Tela preta transmissão</button>
         <button class="big reset" onclick="resetAll()">Resetar partida</button>
     </div>
@@ -169,22 +167,18 @@ z-index:99;
         <div class="scoreboard">
             <div class="team">
                 <div class="teamName" id="tvName1">TIME A</div>
-                <div class="pointsContainer">
-                    <div class="points" id="point1">0</div>
-                    <div class="arrow" id="arrow1">⬤</div>
-                </div>
-            <div class="sets">SETS: <span id="set1">0</span></div>
+                <div class="sets">SETS: <span id="set1">0</span></div>
+                <div class="points" id="point1">0</div>
+                <div class="arrow" id="arrow1">⏱</div>
             </div>
 
             <div class="center">VS</div>
 
             <div class="team">
                 <div class="teamName" id="tvName2">TIME B</div>
-                <div class="pointsContainer">
-                    <div class="arrow" id="arrow2">⬤</div>
-                    <div class="points" id="point2">0</div>
-                </div>
                 <div class="sets">SETS: <span id="set2">0</span></div>
+                <div class="points" id="point2">0</div>
+                <div class="arrow" id="arrow2">⏱</div>
             </div>
         </div>
     </div>
@@ -195,6 +189,7 @@ z-index:99;
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, set, onValue, update as dbUpdate } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+  // Suas credenciais oficiais do Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyBqJhhs4dNL99qPfo84pvtTFOhpcVVRDjs",
     authDomain: "placar-de-volei-d501e.firebaseapp.com",
@@ -206,10 +201,12 @@ z-index:99;
     measurementId: "G-WTPM3WF8E6"
   };
 
+  // Inicializa o Firebase
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const placarRef = ref(db, 'partida/');
 
+  // Estado local padrão
   let state = {
     name1: "TIME A", name2: "TIME B",
     point1: 0, point2: 0,
@@ -217,6 +214,7 @@ z-index:99;
     timeout: 0, black: false
   };
 
+  // Escuta as atualizações em tempo real do banco de dados
   onValue(placarRef, (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -227,6 +225,7 @@ z-index:99;
     }
   });
 
+  // Renderiza as mudanças na tela e no painel de inputs
   function render() {
     if(document.activeElement !== document.getElementById('name1')) name1.value = state.name1;
     if(document.activeElement !== document.getElementById('name2')) name2.value = state.name2;
@@ -244,127 +243,29 @@ z-index:99;
     overlay.classList.toggle("hidden", state.black);
   }
 
-  // Abre a janela limpa de transmissão com o ícone estático (sem piscar)
-  window.openScreen = function() {
-    const secondWindow = window.open("", "_blank");
-    
-    secondWindow.document.write(`
-      <!DOCTYPE html>
-      <html lang="pt-br">
-      <head>
-        <meta charset="UTF-8">
-        <title>Transmissão Placar</title>
-        <style>
-          body {
-            margin:0; background:black; color:white; font-family:Arial, sans-serif;
-            overflow:hidden; display:flex; justify-content:center; align-items:center; height:100vh;
-          }
-          .overlay { position:fixed; inset:0; background:black; display:none; z-index:99; }
-          .score { display:flex; width:100%; justify-content:space-around; align-items:center; padding: 40px; }
-          .team { text-align:center; width:43%; }
-          .name { font-size:75px; word-break: break-all; }
-          .set{ font-size:50px; color:#fff; margin-bottom: 10px; font-weight: 700;}
-          
-          /* Alinhamento dos pontos + Cronômetro de tempo */
-          .pointsDisplayContainer {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 25px;
-            margin-top: 10px;
-            margin-left: 25%;
-          }
-          .points{ font-size:300px; font-weight:bold; line-height: 1; color: yellow;}
-          
-          .arrow { 
-            font-size:80px; 
-            color:#FF0000; 
-            visibility: hidden; /* Oculto por padrão, mas mantendo o espaçamento fixo */
-          }
-          
-          /* Classe que apenas exibe o ícone de forma fixa quando ativo */
-          .activeTimeout {
-            visibility: visible !important;
-          }
-
-          .center { font-size:90px; color:#444; }
-        </style>
-      </head>
-      <body>
-        <div id="overlay" class="overlay"></div>
-        <div class="score">
-          
-          <div class="team">
-            <div id="n1" class="name">TIME A</div>
-            <div class="pointsDisplayContainer">
-                <div id="p1" class="points">0</div>
-                <div id="a1" class="arrow">⬤</div>
-            </div>
-            <div class="set">SETS: <span id="s1">0</span></div>
-          </div>
-          
-          <div class="center">VS</div>
-          
-          <div class="team">
-            <div id="n2" class="name">TIME B</div>
-            <div class="pointsDisplayContainer">
-                <div id="a2" class="arrow">⬤</div>
-                <div id="p2" class="points">0</div>
-            </div>
-            <div class="set">SETS: <span id="s2">0</span></div>
-          </div>
-        </div>
-
-        <script type="module">
-          import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-          import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-          const config = ${JSON.stringify(firebaseConfig)};
-          const app = initializeApp(config);
-          const db = getDatabase(app);
-          const refPlacar = ref(db, 'partida/');
-
-          onValue(refPlacar, (snapshot) => {
-            const d = snapshot.val();
-            if (d) {
-              document.getElementById('n1').innerText = d.name1;
-              document.getElementById('n2').innerText = d.name2;
-              document.getElementById('p1').innerText = d.point1;
-              document.getElementById('p2').innerText = d.point2;
-              document.getElementById('s1').innerText = d.set1;
-              document.getElementById('s2').innerText = d.set2;
-              
-              // Mostra ou oculta o ícone de forma fixa
-              if(d.timeout === 1) document.getElementById('a1').classList.add('activeTimeout');
-              else document.getElementById('a1').classList.remove('activeTimeout');
-              
-              if(d.timeout === 2) document.getElementById('a2').classList.add('activeTimeout');
-              else document.getElementById('a2').classList.remove('activeTimeout');
-              
-              document.getElementById('overlay').style.display = d.black ? "block" : "none";
-            }
-          });
-        <\/script>
-      </body>
-      </html>
-    `);
-    secondWindow.document.close();
-  }
-
+  // Funções de controle que mandam os dados para a nuvem
   window.changePoint = function(team, val) {
     let currentPoints = state["point" + team] + val;
     if (currentPoints < 0) currentPoints = 0;
-    dbUpdate(placarRef, { ["point" + team]: currentPoints });
+    
+    let updates = {};
+    updates["point" + team] = currentPoints;
+    dbUpdate(placarRef, updates);
   }
 
   window.changeSet = function(team, val) {
     let currentSets = state["set" + team] + val;
     if (currentSets < 0) currentSets = 0;
-    dbUpdate(placarRef, { ["set" + team]: currentSets });
+
+    let updates = {};
+    updates["set" + team] = currentSets;
+    dbUpdate(placarRef, updates);
   }
 
   window.saveName = function(team, name) {
-    dbUpdate(placarRef, { ["name" + team]: name });
+    let updates = {};
+    updates["name" + team] = name;
+    dbUpdate(placarRef, updates);
   }
 
   window.timeout = function(team) {
