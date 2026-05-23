@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Placar Vôlei - Controle & Transmissão</title>
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, sans-serif;
+}
+
+body{
+background:#050505;
+color:white;
+overflow:auto;
+}
+
+.container{
+display:flex;
+min-height:100vh;
+}
+
+/* ===== CONTROLE ===== */
+.control{
+width:340px;
+background:#111;
+padding:25px;
+border-right:2px solid #222;
+}
+
+h2{ margin-bottom:20px; text-align: center; color: #2563eb;}
+h3{ font-size: 14px; text-align: center; margin-bottom: 15px; color: #aaa;}
+
+.teamControl{
+background:#1a1a1a;
+padding:20px;
+border-radius:12px;
+margin-bottom:20px;
+}
+
+input{
+width:100%;
+padding:12px;
+font-size:20px;
+background:#222;
+border:1px solid #333;
+color:white;
+margin-bottom:15px;
+text-align:center;
+border-radius: 6px;
+}
+
+.pointsControl{
+display:flex;
+justify-content:center;
+gap:10px;
+margin:15px 0;
+}
+
+button{
+border:none;
+padding:12px 18px;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+transition: 0.2s;
+}
+button:active { transform: scale(0.95); }
+
+.plus{ background:#16a34a; color:white; font-size: 20px; flex: 1;}
+.minus{ background:#dc2626; color:white; font-size: 20px; flex: 1;}
+.normal{ background:#333; color:white; width:100%; margin-top:10px;}
+.big{ width:100%; padding:15px; margin-top:10px; font-size:17px; background:#2563eb; color:white;}
+.blackBtn{ background:black; border:1px solid #555;}
+.reset{ background:#b91c1c;}
+
+/* ===== TELA ===== */
+.display{
+flex:1;
+position:relative;
+background:black;
+display:flex;
+justify-content:center;
+align-items:center;
+padding: 20px;
+}
+
+.scoreboard{
+width:100%;
+display:flex;
+justify-content:space-around;
+align-items:center;
+}
+
+.team{ text-align:center; width:40%;}
+.teamName{ font-size:60px; margin-bottom:20px; word-break: break-all;}
+.points{ font-size:180px; font-weight:bold; line-height: 1;}
+.sets{ font-size:35px; color:#aaa; margin-bottom: 10px;}
+.arrow{ font-size:50px; color:yellow; opacity:0; transition: 0.2s;}
+.center{ font-size:80px; color:#444;}
+
+.overlay{
+position:absolute;
+inset:0;
+background:black;
+display:none;
+z-index:99;
+}
+.hidden{ display:block; }
+
+/* Responsividade para o celular / telas menores */
+@media (max-width: 900px) {
+    .container { flex-direction: column; }
+    .control { width: 100%; border-right: none; border-bottom: 2px solid #222; }
+    .points { font-size: 100px; }
+    .teamName { font-size: 35px; }
+    .center { font-size: 40px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="control">
+        <h2>Controle</h2>
+        <h3>Abra este arquivo no celular para ver ou controlar!</h3>
+        
+        <div class="teamControl">
+            <input id="name1" value="TIME A" onchange="saveName(1, this.value)">
+            <div>Pontos</div>
+            <div class="pointsControl">
+                <button class="minus" onclick="changePoint(1,-1)">-</button>
+                <button class="plus" onclick="changePoint(1,1)">+</button>
+            </div>
+            <div>Sets</div>
+            <div class="pointsControl">
+                <button class="minus" onclick="changeSet(1,-1)">-</button>
+                <button class="plus" onclick="changeSet(1,1)">+</button>
+            </div>
+            <button class="normal" onclick="timeout(1)">Tempo TIME A</button>
+        </div>
+
+        <div class="teamControl">
+            <input id="name2" value="TIME B" onchange="saveName(2, this.value)">
+            <div>Pontos</div>
+            <div class="pointsControl">
+                <button class="minus" onclick="changePoint(2,-1)">-</button>
+                <button class="plus" onclick="changePoint(2,1)">+</button>
+            </div>
+            <div>Sets</div>
+            <div class="pointsControl">
+                <button class="minus" onclick="changeSet(2,-1)">-</button>
+                <button class="plus" onclick="changeSet(2,1)">+</button>
+            </div>
+            <button class="normal" onclick="timeout(2)">Tempo TIME B</button>
+        </div>
+
+        <button class="big blackBtn" onclick="toggleBlack()">Tela preta transmissão</button>
+        <button class="big reset" onclick="resetAll()">Resetar partida</button>
+    </div>
+
+    <div class="display">
+        <div class="overlay" id="overlay"></div>
+        <div class="scoreboard">
+            <div class="team">
+                <div class="teamName" id="tvName1">TIME A</div>
+                <div class="sets">SETS: <span id="set1">0</span></div>
+                <div class="points" id="point1">0</div>
+                <div class="arrow" id="arrow1">⏱</div>
+            </div>
+
+            <div class="center">VS</div>
+
+            <div class="team">
+                <div class="teamName" id="tvName2">TIME B</div>
+                <div class="sets">SETS: <span id="set2">0</span></div>
+                <div class="points" id="point2">0</div>
+                <div class="arrow" id="arrow2">⏱</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue, update as dbUpdate } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // Suas credenciais oficiais do Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyBqJhhs4dNL99qPfo84pvtTFOhpcVVRDjs",
+    authDomain: "placar-de-volei-d501e.firebaseapp.com",
+    databaseURL: "https://placar-de-volei-d501e-default-rtdb.firebaseio.com",
+    projectId: "placar-de-volei-d501e",
+    storageBucket: "placar-de-volei-d501e.firebasestorage.app",
+    messagingSenderId: "755859649895",
+    appId: "1:755859649895:web:421810dba78133f2616bc2",
+    measurementId: "G-WTPM3WF8E6"
+  };
+
+  // Inicializa o Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const placarRef = ref(db, 'partida/');
+
+  // Estado local padrão
+  let state = {
+    name1: "TIME A", name2: "TIME B",
+    point1: 0, point2: 0,
+    set1: 0, set2: 0,
+    timeout: 0, black: false
+  };
+
+  // Escuta as atualizações em tempo real do banco de dados
+  onValue(placarRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      state = data;
+      render();
+    } else {
+      set(placarRef, state);
+    }
+  });
+
+  // Renderiza as mudanças na tela e no painel de inputs
+  function render() {
+    if(document.activeElement !== document.getElementById('name1')) name1.value = state.name1;
+    if(document.activeElement !== document.getElementById('name2')) name2.value = state.name2;
+
+    tvName1.innerText = state.name1;
+    tvName2.innerText = state.name2;
+    point1.innerText = state.point1;
+    point2.innerText = state.point2;
+    set1.innerText = state.set1;
+    set2.innerText = state.set2;
+
+    arrow1.style.opacity = state.timeout === 1 ? 1 : 0;
+    arrow2.style.opacity = state.timeout === 2 ? 1 : 0;
+
+    overlay.classList.toggle("hidden", state.black);
+  }
+
+  // Funções de controle que mandam os dados para a nuvem
+  window.changePoint = function(team, val) {
+    let currentPoints = state["point" + team] + val;
+    if (currentPoints < 0) currentPoints = 0;
+    
+    let updates = {};
+    updates["point" + team] = currentPoints;
+    dbUpdate(placarRef, updates);
+  }
+
+  window.changeSet = function(team, val) {
+    let currentSets = state["set" + team] + val;
+    if (currentSets < 0) currentSets = 0;
+
+    let updates = {};
+    updates["set" + team] = currentSets;
+    dbUpdate(placarRef, updates);
+  }
+
+  window.saveName = function(team, name) {
+    let updates = {};
+    updates["name" + team] = name;
+    dbUpdate(placarRef, updates);
+  }
+
+  window.timeout = function(team) {
+    let targetTimeout = state.timeout === team ? 0 : team;
+    dbUpdate(placarRef, { timeout: targetTimeout });
+  }
+
+  window.toggleBlack = function() {
+    dbUpdate(placarRef, { black: !state.black });
+  }
+
+  window.resetAll = function() {
+    dbUpdate(placarRef, {
+      point1: 0, point2: 0,
+      set1: 0, set2: 0,
+      timeout: 0, black: false
+    });
+  }
+</script>
+</body>
+</html>
