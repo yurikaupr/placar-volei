@@ -96,11 +96,11 @@ align-items:center;
 
 .team{ text-align:center; width:40%;}
 .teamName{ font-size:60px; margin-bottom:20px; word-break: break-all;}
-.pointsContainer { display: flex; align-items: center; justify-content: center; gap: 15px; }
-.points{ font-size:180px; font-weight:bold; line-height: 1;}
+.pointsContainer { display: flex; align-items: center; justify-content: center; gap: 15px; margin-left: 20px;}
+.points{ font-size:300px; font-weight:bold; line-height: 1; color: yellow;}
 .sets{ font-size:35px; color:#aaa; margin-bottom: 10px;}
 .arrow{ font-size:50px; color:yellow; opacity:0; transition: 0.2s;}
-.center{ font-size:80px; color:#444;}
+.center{ font-size:80px; color:#fff;}
 
 .overlay{
 position:absolute;
@@ -169,22 +169,22 @@ z-index:99;
         <div class="scoreboard">
             <div class="team">
                 <div class="teamName" id="tvName1">TIME A</div>
-                <div class="sets">SETS: <span id="set1">0</span></div>
                 <div class="pointsContainer">
                     <div class="points" id="point1">0</div>
-                    <div class="arrow" id="arrow1">⏱</div>
+                    <div class="arrow" id="arrow1">⬤</div>
                 </div>
+            <div class="sets">SETS: <span id="set1">0</span></div>
             </div>
 
             <div class="center">VS</div>
 
             <div class="team">
                 <div class="teamName" id="tvName2">TIME B</div>
-                <div class="sets">SETS: <span id="set2">0</span></div>
                 <div class="pointsContainer">
-                    <div class="arrow" id="arrow2">⏱</div>
+                    <div class="arrow" id="arrow2">⬤</div>
                     <div class="points" id="point2">0</div>
                 </div>
+                <div class="sets">SETS: <span id="set2">0</span></div>
             </div>
         </div>
     </div>
@@ -277,7 +277,7 @@ z-index:99;
           
           .arrow { 
             font-size:80px; 
-            color:yellow; 
+            color:#FF0000; 
             visibility: hidden; /* Oculto por padrão, mas mantendo o espaçamento fixo */
           }
           
@@ -295,22 +295,22 @@ z-index:99;
           
           <div class="team">
             <div id="n1" class="name">TIME A</div>
-            <div class="set">SETS: <span id="s1">0</span></div>
             <div class="pointsDisplayContainer">
                 <div id="p1" class="points">0</div>
-                <div id="a1" class="arrow">⚫</div>
+                <div id="a1" class="arrow">⬤</div>
             </div>
+            <div class="set">SETS: <span id="s1">0</span></div>
           </div>
           
           <div class="center">VS</div>
           
           <div class="team">
             <div id="n2" class="name">TIME B</div>
-            <div class="set">SETS: <span id="s2">0</span></div>
             <div class="pointsDisplayContainer">
-                <div id="a2" class="arrow">⚫</div>
+                <div id="a2" class="arrow">⬤</div>
                 <div id="p2" class="points">0</div>
             </div>
+            <div class="set">SETS: <span id="s2">0</span></div>
           </div>
         </div>
 
