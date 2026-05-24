@@ -74,6 +74,7 @@ button:active { transform: scale(0.95); }
 .normal{ background:#333; color:white; width:100%; margin-top:10px;}
 .big{ width:100%; padding:15px; margin-top:10px; font-size:17px; background:#2563eb; color:white;}
 .blackBtn{ background:black; border:1px solid #555;}
+.hdmiBtn{ background:#eab308; color:black;} /* Botão Amarelo de Destaque */
 .reset{ background:#b91c1c;}
 
 /* ===== TELA ===== */
@@ -110,6 +111,9 @@ z-index:99;
 }
 .hidden{ display:block; }
 
+/* Ocultar a área de controle se a página for aberta em modo "somente transmissão" */
+body.tv-only .control { display: none; }
+
 /* Responsividade para o celular / telas menores */
 @media (max-width: 900px) {
     .container { flex-direction: column; }
@@ -128,6 +132,9 @@ z-index:99;
         <h2>Controle</h2>
         <h3>Abra este arquivo no celular para ver ou controlar!</h3>
         
+        <button class="big hdmiBtn" onclick="openDisplay()">🖥 Abrir Tela do Placar (HDMI)</button>
+        <hr style="border:1px solid #222; margin:15px 0;">
+
         <div class="teamControl">
             <input id="name1" value="TIME A" onchange="saveName(1, this.value)">
             <div>Pontos</div>
@@ -189,7 +196,6 @@ z-index:99;
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, set, onValue, update as dbUpdate } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  // Suas credenciais oficiais do Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyBqJhhs4dNL99qPfo84pvtTFOhpcVVRDjs",
     authDomain: "placar-de-volei-d501e.firebaseapp.com",
@@ -201,12 +207,10 @@ z-index:99;
     measurementId: "G-WTPM3WF8E6"
   };
 
-  // Inicializa o Firebase
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const placarRef = ref(db, 'partida/');
 
-  // Estado local padrão
   let state = {
     name1: "TIME A", name2: "TIME B",
     point1: 0, point2: 0,
@@ -214,7 +218,16 @@ z-index:99;
     timeout: 0, black: false
   };
 
-  // Escuta as atualizações em tempo real do banco de dados
+  // Verifica se a URL atual possui o parâmetro "?tv", se sim, esconde o controle.
+  if (window.location.search.includes('tv')) {
+    document.body.classList.add('tv-only');
+  }
+
+  // Função para abrir o placar limpo em uma nova janela para o HDMI
+  window.openDisplay = function() {
+    window.open(window.location.href + '?tv', '_blank', 'width=1280,height=720');
+  }
+
   onValue(placarRef, (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -225,25 +238,27 @@ z-index:99;
     }
   });
 
-  // Renderiza as mudanças na tela e no painel de inputs
   function render() {
-    if(document.activeElement !== document.getElementById('name1')) name1.value = state.name1;
-    if(document.activeElement !== document.getElementById('name2')) name2.value = state.name2;
+    const name1Input = document.getElementById('name1');
+    const name2Input = document.getElementById('name2');
 
-    tvName1.innerText = state.name1;
-    tvName2.innerText = state.name2;
-    point1.innerText = state.point1;
-    point2.innerText = state.point2;
-    set1.innerText = state.set1;
-    set2.innerText = state.set2;
+    // Só atualiza os inputs se eles existirem na página (evita erro na tela do HDMI)
+    if(name1Input && document.activeElement !== name1Input) name1Input.value = state.name1;
+    if(name2Input && document.activeElement !== name2Input) name2Input.value = state.name2;
 
-    arrow1.style.opacity = state.timeout === 1 ? 1 : 0;
-    arrow2.style.opacity = state.timeout === 2 ? 1 : 0;
+    if(document.getElementById('tvName1')) tvName1.innerText = state.name1;
+    if(document.getElementById('tvName2')) tvName2.innerText = state.name2;
+    if(document.getElementById('point1')) point1.innerText = state.point1;
+    if(document.getElementById('point2')) point2.innerText = state.point2;
+    if(document.getElementById('set1')) set1.innerText = state.set1;
+    if(document.getElementById('set2')) set2.innerText = state.set2;
 
-    overlay.classList.toggle("hidden", state.black);
+    if(document.getElementById('arrow1')) arrow1.style.opacity = state.timeout === 1 ? 1 : 0;
+    if(document.getElementById('arrow2')) arrow2.style.opacity = state.timeout === 2 ? 1 : 0;
+
+    if(document.getElementById('overlay')) overlay.classList.toggle("hidden", state.black);
   }
 
-  // Funções de controle que mandam os dados para a nuvem
   window.changePoint = function(team, val) {
     let currentPoints = state["point" + team] + val;
     if (currentPoints < 0) currentPoints = 0;
